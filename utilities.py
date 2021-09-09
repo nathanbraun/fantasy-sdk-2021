@@ -212,6 +212,15 @@ def get_sims(token, players, qb='pass6', skill='ppr', dst='high', week=None,
                           raw[endpoint]['players']], axis=1)
 
 
+# misc helper
+
+def schedule_long(sched):
+    sched1 = sched.rename(columns={'team1_id': 'team_id', 'team2_id':
+                                      'opp_id'})
+    sched2 = sched.rename(columns={'team2_id': 'team_id', 'team1_id':
+                                      'opp_id'})
+    return pd.concat([sched1, sched2], ignore_index=True)
+
 if __name__ == '__main__':
     # generate access token
     token = generate_token(LICENSE_KEY)['token']

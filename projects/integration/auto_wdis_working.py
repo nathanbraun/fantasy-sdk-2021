@@ -22,6 +22,7 @@ conn = sqlite3.connect(DB_PATH)
 teams = db.read_league('teams', LEAGUE_ID, conn)
 schedule = db.read_league('schedule', LEAGUE_ID, conn)
 league = db.read_league('league', LEAGUE_ID, conn)
+host = league.iloc[0]['host']
 
 # get parameters from league DataFrame
 
@@ -233,7 +234,7 @@ from pathlib import Path
 from os import path
 
 league_wk_output_dir = path.join(
-    OUTPUT_PATH, f'fleaflicker_{LEAGUE_ID}_2021-{str(WEEK).zfill(2)}')
+    OUTPUT_PATH, f'{host}_{LEAGUE_ID}_2021-{str(WEEK).zfill(2)}')
 
 Path(league_wk_output_dir).mkdir(exist_ok=True)
 

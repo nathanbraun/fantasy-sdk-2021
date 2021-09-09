@@ -1,28 +1,19 @@
 """
 v0.0.1
 """
+import hosts.fleaflicker as site
+import hosts.db as db
+import sqlite3
 import pandas as pd
 from os import path
+from pathlib import Path
 import matplotlib.pyplot as plt
 import seaborn as sns
 from textwrap import dedent
 from pandas import DataFrame
-from utilities import (get_sims, generate_token, LICENSE_KEY, LEAGUE_PATH)
-from league_config import (SEASON, WEEK, SCORING, MATCHUPS,
-                           WORKING_ROSTER_FILE, LEAGUE)
-
-# NOTE: you shouldn't have to set any config options in this file
-# instead do that in league_config.py
-
-LEAGUE_OUTPUT = f'{LEAGUE}_analysis_{SEASON}-{str(WEEK).zfill(2)}.txt'
-
-# put any players who've already played (e.g. in THU night game) here
-SCORES = {
-    # 'den-dst': 18
-}
-
-def lineup_by_owner(owner):
-    return rosters.query(f"owner == '{owner}'")['fm_id']
+from utilities import (get_sims, generate_token, LICENSE_KEY, DB_PATH,
+                       OUTPUT_PATH, master_player_lookup, get_players,
+                       schedule_long)
 
 def summarize_matchup(sims_a, sims_b):
     """
@@ -47,6 +38,31 @@ def summarize_matchup(sims_a, sims_b):
 
     return {'wp_a': winprob_a, 'wp_b': winprob_b, 'over_under': over_under,
             'line': line}
+
+def summarize_team(sims):
+    """
+    Calculate summary stats on one set of teams.
+    """
+    totals = sims.sum(axis=1)
+    # note: dropping count, min, max since those aren't that useful
+    stats = (totals.describe(percentiles=[.05, .25, .5, .75, .95])
+            [['mean', 'std', '5%', '25%', '50%', '75%', '95%']].to_dict())
+
+    # maybe share of points by each pos? commented out now but could look if
+    # interesting
+
+    # stats['qb'] = sims.iloc[:,0].mean()
+    # stats['rb'] = sims.iloc[:,1:3].sum(axis=1).mean()
+    # stats['flex'] = sims.iloc[:,3].mean()
+    # stats['wr'] = sims.iloc[:,4:6].sum(axis=1).mean()
+    # stats['te'] = sims.iloc[:,6].mean()
+    # stats['k'] = sims.iloc[:,7].mean()
+    # stats['dst'] = sims.iloc[:,8].mean()
+
+    return stats
+
+def lineup_by_team(team_id):
+    return rosters.query(f"team_id == {team_id} & fantasymath_id.notnull()")['fantasymath_id']
 
 def lock_of_week(df):
     # team a
@@ -73,53 +89,54 @@ def photo_finish(df):
 
     return df.loc[closest_matchup_id].to_dict()
 
-def summarize_team(sims):
-    """
-    Calculate summary stats on one set of teams.
-    """
-    totals = sims.sum(axis=1)
-    # note: dropping count, min, max since those aren't that useful
-    stats = (totals.describe(percentiles=[.05, .25, .5, .75, .95])
-            [['mean', 'std', '5%', '25%', '50%', '75%', '95%']].to_dict())
-
-    # maybe share of points by each pos? commented out now but could look if
-    # interesting
-
-    # stats['qb'] = sims.iloc[:,0].mean()
-    # stats['rb'] = sims.iloc[:,1:3].sum(axis=1).mean()
-    # stats['wr'] = sims.iloc[:,3:5].sum(axis=1).mean()
-    # stats['te'] = sims.iloc[:,5].mean()
-    # stats['k'] = sims.iloc[:,6].mean()
-    # stats['dst'] = sims.iloc[:,7].mean()
-
-    return stats
-
-########################################################
-# load weekly lineup, matchup info
-# note: edit this if you want to analyze your own league
-########################################################
-
 if __name__ == '__main__':
-    rosters = (pd.read_csv(path.join(LEAGUE_PATH, WORKING_ROSTER_FILE)))
+    # set parameters here
+    LEAGUE_ID = 316893
+    WEEK = 1
 
-    rosters = (pd.read_csv(path.join(LEAGUE_PATH,
-                                     WORKING_ROSTER_FILE)).query("owner.notnull()"))
+    # first: get league data from DB + roster data by connecting to site
+    conn = sqlite3.connect(DB_PATH)
 
+    teams = db.read_league('teams', LEAGUE_ID, conn)
+    schedule = db.read_league('schedule', LEAGUE_ID, conn)
+    league = db.read_league('league', LEAGUE_ID, conn)
+
+    # set other parameters
+    TEAM_ID = league.iloc[0]['team_id']
+    HOST = league.iloc[0]['host']
+    SCORING = {}
+    SCORING['qb'] = league.iloc[0]['qb_scoring']
+    SCORING['skill'] = league.iloc[0]['skill_scoring']
+    SCORING['dst'] = league.iloc[0]['dst_scoring']
+
+    # then load rosters
     token = generate_token(LICENSE_KEY)['token']
+    player_lookup = master_player_lookup(token)
 
-    sims = get_sims(token, list(rosters['fm_id']), nsims=1000, **SCORING)
+    rosters = (site.get_league_rosters(player_lookup, LEAGUE_ID)
+            .query("start"))
 
-    # update sims with SCORES
-    for player, score in SCORES.items():
-        sims[player] = score
+    # making sure we query only valid players
+    available_players = get_players(token, **SCORING)
+
+    sims = get_sims(token, (set(rosters['fantasymath_id']) &
+                    set(available_players['fantasymath_id'])),
+                    nsims=1000, **SCORING)
+
+    ########################################################
+    # load weekly lineup, matchup info
+    ########################################################
+
+    schedule_this_week = schedule.query(f"week == {WEEK}")
 
     # apply summarize matchup to every matchup in the data
     matchup_list = []  # empty matchup list, where all our dicts will go
 
-    for a, b in MATCHUPS:
+    for a, b in zip(schedule_this_week['team1_id'], schedule_this_week['team2_id']):
+
         # gives us Series of starting lineups for each team in matchup
-        lineup_a = rosters.query(f"owner == '{a}'")['fm_id']
-        lineup_b = rosters.query(f"owner == '{b}'")['fm_id']
+        lineup_a = lineup_by_team(a)
+        lineup_b = lineup_by_team(b)
 
         # use lineups to grab right sims, feed into summarize_matchup function
         working_matchup_dict = summarize_matchup(
@@ -135,29 +152,32 @@ if __name__ == '__main__':
 
     matchup_df = DataFrame(matchup_list)
 
+    team_to_owner = {team: owner for team, owner in zip(teams['team_id'],
+                                                        teams['owner_name'])}
+
+    matchup_df[['team_a', 'team_b']] = matchup_df[['team_a', 'team_b']].replace(team_to_owner)
+
     #################
     # analyzing teams
     #################
 
     team_list = []
 
-    for team in rosters['owner'].unique():
-        team_lineup = rosters.query(f"owner == '{team}'")['fm_id']
+    for team_id in teams['team_id']:
+        team_lineup = lineup_by_team(team_id)
         working_team_dict = summarize_team(sims[team_lineup])
-        working_team_dict['team'] = team
+        working_team_dict['team_id'] = team_id
 
         team_list.append(working_team_dict)
 
-    team_df = DataFrame(team_list).set_index('team')
+    team_df = DataFrame(team_list).set_index('team_id')
 
     # high low
     # first step: get totals for each team in one DataFrame
     totals_by_team = pd.concat(
-        [(sims[lineup_by_owner(owner)].sum(axis=1)
-            .to_frame(owner)) for owner in rosters['owner'].unique()], axis=1)
+        [(sims[lineup_by_team(team_id)].sum(axis=1)
+            .to_frame(team_id)) for team_id in teams['team_id']], axis=1)
 
-    # then apply idxmax(axis=1) <- finds the name of column with the max, and
-    # get % of time each team has the high in the sims
     team_df['p_high'] = (totals_by_team.idxmax(axis=1)
                         .value_counts(normalize=True))
 
@@ -172,12 +192,31 @@ if __name__ == '__main__':
     # same for low score
     low_score = totals_by_team.min(axis=1)
 
+    # then analyze
+    pd.concat([
+        high_score.describe(percentiles=[.05, .25, .5, .75, .95]),
+        low_score.describe(percentiles=[.05, .25, .5, .75, .95])], axis=1)
+
+
+    # add owner
+    team_df = (pd.merge(team_df, teams[['team_id', 'owner_name']], left_index=True,
+                    right_on = 'team_id')
+            .set_index('owner_name')
+            .drop('team_id', axis=1))
+
+    league_wk_output_dir = path.join(
+        OUTPUT_PATH, f'{HOST}_{LEAGUE_ID}_2021-{str(WEEK).zfill(2)}')
+
+    Path(league_wk_output_dir).mkdir(exist_ok=True, parents=True)
+
+    output_file = path.join(league_wk_output_dir, 'league_analysis.txt')
+
     # print results
-    with open(path.join(LEAGUE_PATH, LEAGUE_OUTPUT), 'w') as f:
+    with open(output_file, 'w') as f:
         print(dedent(
             f"""
             **********************************
-            Matchup Projections, Week {WEEK} - {SEASON}
+            Matchup Projections, Week {WEEK} - 2021
             **********************************
             """), file=f)
         print(matchup_df, file=f)
@@ -185,22 +224,13 @@ if __name__ == '__main__':
         print(dedent(
             f"""
             ********************************
-            Team Projections, Week {WEEK} - {SEASON}
+            Team Projections, Week {WEEK} - 2021
             ********************************
             """), file=f)
 
         print(team_df.round(2).sort_values('mean', ascending=False),
             file=f)
 
-        print(dedent("""
-              ************************
-              High and Low Score Stats
-              ************************
-              """), file=f)
-        print(pd.concat([
-            high_score.describe(percentiles=[.05, .25, .5, .75, .95]),
-            low_score.describe(percentiles=[.05, .25, .5, .75, .95])], axis=1),
-            file=f)
 
         lock = lock_of_week(matchup_df)
         close = photo_finish(matchup_df)
@@ -223,38 +253,28 @@ if __name__ == '__main__':
     ################################################################################
 
     teams_long = totals_by_team.stack().reset_index()
-    teams_long.columns = ['sim', 'team', 'pts']
+    teams_long.columns = ['sim', 'team_id', 'pts']
 
-    # plot
-    g = sns.FacetGrid(teams_long, hue='team', aspect=2)
+    # now to link this to teams_long
+    schedule_team = schedule_long(schedule).query(f"week == {WEEK}")
+
+    teams_long_w_matchup = pd.merge(teams_long, schedule_team[['team_id', 'matchup_id']])
+
+
+    schedule_this_week['desc'] = (schedule_this_week['team2_id'].replace(team_to_owner)
+                                + ' v ' +
+                                schedule_this_week['team1_id'].replace(team_to_owner))
+
+    # and plot it
+    teams_long_w_desc = pd.merge(teams_long_w_matchup,
+                                schedule_this_week[['matchup_id', 'desc']])
+    teams_long_w_desc.head()
+
+    g = sns.FacetGrid(teams_long_w_desc.replace(team_to_owner), hue='team_id',
+                    col='desc', col_wrap=2, aspect=2)
     g = g.map(sns.kdeplot, 'pts', shade=True)
     g.add_legend()
     g.fig.subplots_adjust(top=0.9)
-    g.fig.suptitle(f'Team Points Distributions - Week {WEEK}')
-    g.fig.savefig(path.join(LEAGUE_PATH, f'{LEAGUE}_{str(WEEK).zfill(2)}_team_dist.png'),
+    g.fig.suptitle(f'Team Points Distributions by Matchup 2 - Week {WEEK}')
+    g.fig.savefig(path.join(league_wk_output_dir, 'team_dist_by_matchup.png'),
                 bbox_inches='tight', dpi=500)
-
-    # add in matchup info
-    # add ID to each matchup tuple
-    matchups_wid = [(a, b, f'{a} v {b}') for a, b in MATCHUPS]
-
-    # reverse each matchup tuple, but keep same ID
-    matchups_wid_reversed = [(b, a, i) for a, b, i in matchups_wid]
-
-    # put into DataFrame
-    matchup_lookup = DataFrame(matchups_wid + matchups_wid_reversed)
-    matchup_lookup.columns = ['team', 'opp', 'matchup']
-
-    # add to teams
-    teams_long = pd.merge(teams_long, matchup_lookup[['team', 'matchup']])
-
-    # and now we plot it
-    g = sns.FacetGrid(teams_long, hue='team', col='matchup', col_wrap=2, aspect=2)
-    g = g.map(sns.kdeplot, 'pts', shade=True)
-    g.add_legend()
-    g.fig.subplots_adjust(top=0.9)
-    g.fig.suptitle(f'Team Distributions by matchup - Week {WEEK}')
-    g.fig.savefig(path.join(LEAGUE_PATH, f'{LEAGUE}_{str(WEEK).zfill(2)}_team_dist_matchup.png'),
-                bbox_inches='tight', dpi=500)
-
-

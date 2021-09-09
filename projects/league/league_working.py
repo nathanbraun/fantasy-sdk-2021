@@ -12,7 +12,8 @@ import seaborn as sns
 from textwrap import dedent
 from pandas import DataFrame
 from utilities import (get_sims, generate_token, LICENSE_KEY, DB_PATH,
-                       OUTPUT_PATH, master_player_lookup, get_players)
+                       OUTPUT_PATH, master_player_lookup, get_players,
+                       schedule_long)
 
 
 LEAGUE_ID = 316893
@@ -35,11 +36,12 @@ SCORING['dst'] = league.iloc[0]['dst_scoring']
 
 # then rosters
 token = generate_token(LICENSE_KEY)['token']
-player_lookup = master_player_lookup(token).query("fleaflicker_id.notnull()")
+player_lookup = master_player_lookup(token)
 
 rosters = (site.get_league_rosters(player_lookup, LEAGUE_ID)
            .query("start"))
 
+# making sure we query only valid players
 available_players = get_players(token, **SCORING)
 
 sims = get_sims(token, (set(rosters['fantasymath_id']) &
@@ -352,80 +354,56 @@ totals_by_team.head()
 totals_by_team.stack().head()
 
 teams_long = totals_by_team.stack().reset_index()
-teams_long.columns = ['sim', 'team', 'pts']
+teams_long.columns = ['sim', 'team_id', 'pts']
 
 teams_long.head()
 
 # plot
-g = sns.FacetGrid(teams_long.replace(team_to_owner), hue='team', aspect=2)
+g = sns.FacetGrid(teams_long.replace(team_to_owner), hue='team_id', aspect=2)
 g = g.map(sns.kdeplot, 'pts', shade=True)
 g.add_legend()
 g.fig.subplots_adjust(top=0.9)
 g.fig.suptitle(f'Team Points Distributions - Week {WEEK}')
-g.fig.savefig(path.join(league_wk_output_dir, f'team_dist_overlap.png'),
-              bbox_inches='tight', dpi=500)
+# g.fig.savefig(path.join(league_wk_output_dir, f'team_dist_overlap.png'),
+#               bbox_inches='tight', dpi=500)
 
 # add in matchup info
 
 # now to link this to teams_long
-schedule_team = (site.read_league('schedule_team', LEAGUE_ID, conn)
-                 .query(f"week == {WEEK}"))
+schedule_team = schedule_long(schedule).query(f"week == {WEEK}")
 schedule_team
 
-teams_long_w_matchup = pd.merge(teams_long, schedule_team[['team', 'game_id']])
+teams_long_w_matchup = pd.merge(teams_long, schedule_team[['team_id', 'matchup_id']])
 teams_long_w_matchup.head()
 
-g = sns.FacetGrid(teams_long_w_matchup.replace(team_to_owner), hue='team',
-                  col='game_id', col_wrap=2, aspect=2)
+g = sns.FacetGrid(teams_long_w_matchup.replace(team_to_owner), hue='team_id',
+                  col='matchup_id', col_wrap=2, aspect=2)
 g = g.map(sns.kdeplot, 'pts', shade=True)
 g.add_legend()
 g.fig.subplots_adjust(top=0.9)
 g.fig.suptitle(f'Team Points Distributions by Matchup 1 - Week {WEEK}')
-g.fig.savefig(path.join(league_wk_output_dir, 'team_dist_by_matchup1.png'),
-              bbox_inches='tight', dpi=500)
+# g.fig.savefig(path.join(league_wk_output_dir, 'team_dist_by_matchup1.png'),
+#               bbox_inches='tight', dpi=500)
 
-# fine but game_id kind of lame
+# fine but matchup_id kind of lame
 # let's get a description
 
 schedule_this_week['desc'] = (schedule_this_week['team2_id'].replace(team_to_owner)
                               + ' v ' +
                               schedule_this_week['team1_id'].replace(team_to_owner))
 
-schedule_this_week[['game_id', 'desc']]
+schedule_this_week[['matchup_id', 'desc']]
 
-# and
+# and plot it
 teams_long_w_desc = pd.merge(teams_long_w_matchup,
-                             schedule_this_week[['game_id', 'desc']])
+                             schedule_this_week[['matchup_id', 'desc']])
 teams_long_w_desc.head()
 
-g = sns.FacetGrid(teams_long_w_desc.replace(team_to_owner), hue='team',
+g = sns.FacetGrid(teams_long_w_desc.replace(team_to_owner), hue='team_id',
                   col='desc', col_wrap=2, aspect=2)
 g = g.map(sns.kdeplot, 'pts', shade=True)
 g.add_legend()
 g.fig.subplots_adjust(top=0.9)
 g.fig.suptitle(f'Team Points Distributions by Matchup 2 - Week {WEEK}')
-g.fig.savefig(path.join(league_wk_output_dir, 'team_dist_by_matchup2.png'),
-              bbox_inches='tight', dpi=500)
-
-# add ID to each matchup tuple
-matchups_wid = [(a, b, f'{a} v {b}') for a, b in MATCHUPS]
-
-# reverse each matchup tuple, but keep same ID
-matchups_wid_reversed = [(b, a, i) for a, b, i in matchups_wid]
-
-# put into DataFrame
-matchup_lookup = DataFrame(matchups_wid + matchups_wid_reversed)
-matchup_lookup.columns = ['team', 'opp', 'matchup']
-matchup_lookup
-
-teams_long = pd.merge(teams_long, matchup_lookup[['team', 'matchup']])
-
-# and now we plot it
-g = sns.FacetGrid(teams_long, hue='team', col='matchup', col_wrap=2, aspect=2)
-g = g.map(sns.kdeplot, 'pts', shade=True)
-g.add_legend()
-g.fig.subplots_adjust(top=0.9)
-g.fig.suptitle(f'Team Distributions by matchup - Week {WEEK}')
-g.fig.savefig(path.join(LEAGUE_PATH, f'{LEAGUE}_{str(WEEK).zfill(2)}_team_dist_matchup.png'),
-              bbox_inches='tight', dpi=500)
-
+# g.fig.savefig(path.join(league_wk_output_dir, 'team_dist_by_matchup2.png'),
+#               bbox_inches='tight', dpi=500)
