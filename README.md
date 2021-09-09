@@ -40,6 +40,8 @@ Here are my priorities, most important first:
 ### Priorities
 - any bug fixes etc that people notice associated with this guide or the
   simulations API; definitely email me — [nate@nathanbraun.com](mailto:nate@nathanbraun.com)
+- league integration/analysis/wdis: ability to automatically take into account
+  current, midweek scores (will try to do friday after thu night game)
 - sleeper integration (hopefully very soon)
 - Fantasy Math web access (ditto)
 - a few simulation API convienence improvements
