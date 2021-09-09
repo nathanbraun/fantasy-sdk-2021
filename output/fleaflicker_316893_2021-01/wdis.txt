@@ -1,6 +1,6 @@
 WDIS Analysis, Fleaflicker League 316893, Week 1
 
-Run at 2021-09-09 01:21:58.829937
+Run at 2021-09-09 14:22:29.909159
 
 Recommended Starters:
 QB: jalen-hurts
@@ -16,28 +16,28 @@ D/ST: no-dst
 Detailed Projections and Win Probability:
                                      mean     wp  wrong  regret
 pos      player                                                
-QB       jalen-hurts            92.690610  0.538  0.452   0.047
-         ryan-fitzpatrick       88.944829  0.491  0.719   0.094
-         mac-jones              85.600140  0.448  0.829   0.137
-RB1      clyde-edwards-helaire  92.690610  0.538  0.371   0.035
-         javonte-williams       89.317721  0.500  0.629   0.073
-RB2      najee-harris           92.690610  0.538  0.273   0.028
-         javonte-williams       86.716829  0.470  0.727   0.096
-RB/WR/TE myles-gaskin           92.690610  0.538  0.713   0.078
-         javonte-williams       91.975398  0.537  0.753   0.079
-         elijah-moore           90.507246  0.512  0.866   0.104
-         kenny-golladay         91.000645  0.512  0.823   0.104
-         jaylen-waddle          90.799185  0.504  0.845   0.112
-WR1      antonio-brown          92.690610  0.538  0.704   0.062
-         jaylen-waddle          91.860230  0.530  0.770   0.070
-         elijah-moore           91.568292  0.521  0.788   0.079
-         kenny-golladay         92.061690  0.520  0.738   0.080
-WR2      davante-adams          92.690610  0.538  0.471   0.045
-         jaylen-waddle          87.277602  0.456  0.833   0.127
-         kenny-golladay         87.479062  0.454  0.827   0.129
-         elijah-moore           86.985663  0.449  0.869   0.134
-TE       george-kittle          92.690610  0.538  0.000   0.000
-K        greg-zuerlein          92.690610  0.538  0.000   0.000
-D/ST     no-dst                 92.690610  0.538  0.000   0.000
+QB       jalen-hurts            91.907979  0.487  0.447   0.050
+         ryan-fitzpatrick       88.233899  0.440  0.714   0.097
+         mac-jones              84.805746  0.368  0.839   0.169
+RB1      clyde-edwards-helaire  91.907979  0.487  0.368   0.029
+         javonte-williams       88.805146  0.435  0.632   0.081
+RB2      najee-harris           91.907979  0.487  0.305   0.018
+         javonte-williams       86.423290  0.406  0.695   0.099
+RB/WR/TE myles-gaskin           91.907979  0.487  0.718   0.079
+         javonte-williams       91.108260  0.467  0.777   0.099
+         kenny-golladay         90.291289  0.458  0.826   0.108
+         elijah-moore           89.771792  0.453  0.849   0.113
+         jaylen-waddle          90.122853  0.453  0.830   0.113
+WR1      antonio-brown          91.907979  0.487  0.703   0.073
+         kenny-golladay         91.072642  0.474  0.750   0.086
+         elijah-moore           90.553144  0.466  0.781   0.094
+         jaylen-waddle          90.904205  0.464  0.766   0.096
+WR2      davante-adams          91.907979  0.487  0.469   0.048
+         elijah-moore           85.818813  0.406  0.855   0.129
+         kenny-golladay         86.338310  0.403  0.839   0.132
+         jaylen-waddle          86.169874  0.401  0.837   0.134
+TE       george-kittle          91.907979  0.487  0.000   0.000
+K        greg-zuerlein          91.907979  0.487  0.000   0.000
+D/ST     no-dst                 91.907979  0.487  0.000   0.000
 
 Current starters maximize probability of winning.

@@ -5,12 +5,12 @@ import sqlite3
 import pandas as pd
 from utilities import DB_PATH, ESPN_S2, SWID
 
-LEAGUE_ID = 316893
-TEAM_ID = 1605156
+LEAGUE_ID = 34958
+TEAM_ID = 217960
 
 LEAGUE_NAME = "Family League"
 HOST = 'fleaflicker'
-SCORING = {'qb': 'pass4', 'skill': 'ppr0', 'dst': 'mfl'}
+SCORING = {'qb': 'pass6', 'skill': 'ppr', 'dst': 'high'}
 
 # open up our database connection
 conn = sqlite3.connect(DB_PATH)

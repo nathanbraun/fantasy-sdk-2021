@@ -1,4 +1,5 @@
 import hosts.fleaflicker as site
+import hosts.db as db
 from os import path
 import datetime as dt
 from pandas import DataFrame, Series
@@ -8,9 +9,10 @@ import pandas as pd
 from pathlib import Path
 from os import path
 from utilities import (LICENSE_KEY, generate_token, master_player_lookup,
-                       get_sims, get_players, DB_PATH, OUTPUT_PATH)
+                       get_sims, get_players, DB_PATH, OUTPUT_PATH,
+                       schedule_long)
 
-LEAGUE_ID = 316893
+LEAGUE_ID = 34958
 WEEK = 1
 
 def wdis_by_pos(pos, sims, roster, opponent_starters):
@@ -52,10 +54,9 @@ if __name__ == '__main__':
     # load team and schedule data from DB
     #######################################
 
-    teams = site.read_league('teams', LEAGUE_ID, conn)
-    schedule = site.read_league('schedule', LEAGUE_ID, conn)
-    schedule_team = site.read_league('schedule_team', LEAGUE_ID, conn)
-    league = site.read_league('league', LEAGUE_ID, conn)
+    teams = db.read_league('teams', LEAGUE_ID, conn)
+    schedule = db.read_league('schedule', LEAGUE_ID, conn)
+    league = db.read_league('league', LEAGUE_ID, conn)
 
     # get parameters from league DataFrame
 
@@ -74,8 +75,7 @@ if __name__ == '__main__':
     token = generate_token(LICENSE_KEY)['token']
     player_lookup = master_player_lookup(token).query("fleaflicker_id.notnull()")
 
-    rosters = pd.concat([site.lineup_by_team(x, LEAGUE_ID, player_lookup)
-                        for x in teams['team_id']], ignore_index=True)
+    rosters = site.get_league_rosters(player_lookup, LEAGUE_ID, WEEK)
 
     ########################
     # what we need for wdis:
@@ -91,9 +91,10 @@ if __name__ == '__main__':
     # 2. list of opponent's starters
 
     # first: use schedule to find our opponent this week
+    schedule_team = schedule_long(schedule)
     opponent_id = schedule_team.loc[
-        (schedule_team['team'] == TEAM_ID) & (schedule_team['week'] == WEEK),
-        'opp'].values[0]
+        (schedule_team['team_id'] == TEAM_ID) & (schedule_team['week'] == WEEK),
+        'opp_id'].values[0]
 
     # then same thing
     opponent_starters = list(rosters.loc[
