@@ -25,7 +25,7 @@ So the first step is renaming `config_example.ini` to just `config.ini`. Then
 you can paste your developer kit license key in it. More details in the PDF
 guide.
 
-## Updates & Roadmap
+## Updates & Roadmap (2021-09-09)
 Normally, this would have been out earlier in August, however my wife was
 diagnosed with Hodgkin's Lymphoma (good prognosis) a few weeks ago. That +
 pulling our three kids 5 and under out of school (so they don't get her sick)

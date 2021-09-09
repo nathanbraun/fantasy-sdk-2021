@@ -1,0 +1,30 @@
+count    1000.000000
+mean      139.546496
+std        23.273367
+min        74.023821
+5%        101.290424
+25%       124.127922
+50%       139.288787
+75%       154.451295
+95%       178.538005
+max       216.030185
+dtype: float64
+                    QB   RB1   RB2   WR1   WR2   WR3    TE  FLEX   DST   ALL
+baker-mayfield    1.00                                                  1.00
+ezekiel-elliott         0.50  0.20                          0.06        0.76
+james-white             0.20  0.24                          0.08        0.53
+marlon-mack             0.16  0.23                          0.10        0.48
+devin-singletary        0.10  0.16                          0.07        0.33
+malcolm-brown           0.04  0.08                          0.05        0.17
+nyheim-hines            0.01  0.09                          0.10        0.20
+mike-evans                          0.43  0.18  0.11        0.05        0.77
+dj-moore                            0.17  0.22  0.20        0.04        0.63
+christian-kirk                      0.14  0.13  0.14        0.07        0.48
+anthony-miller                      0.10  0.14  0.11        0.07        0.42
+marquise-goodwin                    0.09  0.10  0.15        0.06        0.40
+curtis-samuel                       0.04  0.17  0.18        0.09        0.48
+mecole-hardman                      0.03  0.07  0.11        0.04        0.24
+george-kittle                                         0.79  0.03        0.82
+noah-fant                                             0.21  0.09        0.30
+den-dst                                                           0.73  0.73
+cin-dst                                                           0.27  0.27
