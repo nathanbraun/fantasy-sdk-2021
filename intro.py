@@ -1,6 +1,3 @@
-"""
-v0.0.1
-"""
 import pandas as pd
 import seaborn as sns
 from utilities import LICENSE_KEY, generate_token, get_players, get_sims

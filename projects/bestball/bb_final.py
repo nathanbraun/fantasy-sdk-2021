@@ -1,6 +1,3 @@
-"""
-v0.0.1
-"""
 import pandas as pd
 from os import path
 from pandas import Series

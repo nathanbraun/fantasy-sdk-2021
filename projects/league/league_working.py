@@ -1,6 +1,3 @@
-"""
-v0.0.1
-"""
 import hosts.fleaflicker as site
 import hosts.db as db
 import sqlite3

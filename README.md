@@ -3,8 +3,8 @@ These are the files for 2021 Fantasy Football Developer Kit.
 
 If you're not familiar with Git or GitHub, no problem. Just click the `Source
 code` link under the latest release to download the files.  This will download
-a file called `fantasy-sdk-2021-vX.X.X.zip`, where X.X.X is the latest
-version number (v0.0.1 in the screenshot above).
+a file called `fantasy-sdk-2021-vX.X.X.zip`, where X.X.X is the latest version
+number.
 
 When you unzip these (note in the book I've dropped the version number and
 renamed the directory just `fantasy-sdk-2021`, which you can do too) make note
@@ -50,5 +50,12 @@ Here are my priorities, most important first:
 Check back here for updated versions. Will keep the changelog updated.
 
 ## Changelog
+### v0.0.4 (2021-09-09)
+Make it clearer license keys go in config.ini, not utilities.py. Drop version
+numbers from code docstrings — too hard to manually keep up to date.
+
+### v0.0.3 (2021-09-09)
+Fix a bug in `./projects/integration/auto_wdis_final`
+
 ### v0.0.1 (2021-09-09)
 Release!

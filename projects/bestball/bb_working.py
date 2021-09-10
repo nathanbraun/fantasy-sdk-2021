@@ -1,6 +1,3 @@
-"""
-v0.0.1
-"""
 import pandas as pd
 from os import path
 import matplotlib.pyplot as plt

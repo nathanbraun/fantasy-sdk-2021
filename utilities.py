@@ -1,6 +1,3 @@
-"""
-v0.0.1
-"""
 from pandas import DataFrame, Series
 import pandas as pd
 import json
@@ -12,6 +9,12 @@ from configparser import ConfigParser
 
 config = ConfigParser(interpolation=None)
 config.read('config.ini')
+
+################################################################################
+# shouldn't have to change anything in this file
+# this file reads your config.ini and assigns values based on that
+# do not edit them here
+################################################################################
 
 # constants - mostly loaded from config.ini - shouldn't need to change
 # if not working make sure you have config.ini set up
