@@ -29,15 +29,6 @@ def get_teams_in_league(league_id):
     teams_df['league_id'] = league_id
     return teams_df
 
-def get_league_schedule(league_id):
-    return pd.concat([_get_schedule_by_week(league_id, week) for week in
-                      range(1, 15)], ignore_index=True)
-
-##################
-# helper functions
-##################
-
-# roster helper functions
 def _process_player(slot):
     dict_to_return = {}
 
@@ -48,11 +39,29 @@ def _process_player(slot):
         dict_to_return['player_position'] = fleaflicker_player_dict['position']
         dict_to_return['fleaflicker_id'] = fleaflicker_player_dict['id']
 
+        if 'requestedGames' in slot['leaguePlayer']:
+            game = slot['leaguePlayer']['requestedGames'][0]
+            if 'pointsActual' in game:
+                if 'value' in game['pointsActual']:
+                    dict_to_return['actual'] = game['pointsActual']['value']
+
+
     if 'position' in slot.keys():
         fleaflicker_position_dict = slot['position']
 
         dict_to_return['team_position'] = fleaflicker_position_dict['label']
         return dict_to_return
+
+# list of dicts: put in DataFrame
+def get_league_schedule(league_id):
+    return pd.concat([_get_schedule_by_week(league_id, week) for week in
+                      range(1, 15)], ignore_index=True)
+
+##################
+# helper functions
+##################
+
+# roster helper functions
 
 def _add_pos_suffix(df_subset):
     if len(df_subset) > 1:

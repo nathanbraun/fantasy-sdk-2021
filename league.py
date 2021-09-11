@@ -120,6 +120,9 @@ if __name__ == '__main__':
                     set(available_players['fantasymath_id'])),
                     nsims=1000, **SCORING)
 
+    players_w_pts = rosters.query("actual.notnull()")
+    for player, pts in zip(players_w_pts['fantasymath_id'], players_w_pts['actual']):
+        sims[player] = pts
     ########################################################
     # load weekly lineup, matchup info
     ########################################################

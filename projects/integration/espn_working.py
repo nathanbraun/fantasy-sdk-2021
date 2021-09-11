@@ -22,10 +22,14 @@ TEAM_ID = 11
 roster_url = ('https://fantasy.espn.com/apis/v3/games/ffl/seasons/2021' +
               f'/segments/0/leagues/{LEAGUE_ID}?view=mRoster')
 
+# gets current data
+# should run/look at, but we're overwriting with saved data next line
 roster_json = requests.get(roster_url, cookies={'swid': SWID, 'espn_s2':
                                                 ESPN_S2}).json()
 
-roster_url
+# saved data
+with open('./projects/integration/raw/espn/roster.json') as f:
+    roster_json = json.load(f)
 
 list_of_rosters = roster_json['teams']
 
@@ -126,16 +130,60 @@ def process_roster(team):
 all_rosters = pd.concat([process_roster(x) for x in list_of_rosters],
                         ignore_index=True)
 
-all_rosters['name'].str.lower().str.replace(' ','-').head()
+boxscore_url = ('https://fantasy.espn.com/apis/v3/games/ffl/seasons/2021' +
+                f'/segments/0/leagues/{LEAGUE_ID}?view=mBoxscore')
+
+# gets current points data
+# should run/look at, but we're overwriting with saved data next line
+boxscore_json = requests.get(boxscore_url, cookies={'swid': SWID, 'espn_s2':
+                                                    ESPN_S2}).json()
+
+# saved data
+with open('./projects/integration/raw/espn/boxscore.json') as f:
+    boxscore_json = json.load(f)
+
+matchup_list = boxscore_json['schedule']
+matchup0 = matchup_list[0]
+
+matchup0_home0 = matchup0['home']['rosterForMatchupPeriod']['entries'][0]
+
+def proc_played(played):
+    dict_to_return = {}
+    dict_to_return['espn_id'] = played['playerId']
+
+    dict_to_return['actual'] = played['playerPoolEntry']['player']['stats'][0]['appliedTotal']
+    return dict_to_return
+
+proc_played(matchup0_home0)
+
+def proc_played_team(team):
+    if 'rosterForMatchupPeriod' in team.keys():
+        return DataFrame([proc_played(x) for x in
+                          team['rosterForMatchupPeriod']['entries']])
+    else:
+        return DataFrame()
+
+def proc_played_matchup(matchup):
+    return pd.concat([proc_played_team(matchup['home']),
+                      proc_played_team(matchup['away'])], ignore_index=True)
+
+scores = pd.concat([proc_played_matchup(x) for x in matchup_list])
+
+all_rosters_w_pts = pd.merge(all_rosters, scores, how='left')
+
+# fantasy math id
+all_rosters_w_pts['name'].str.lower().str.replace(' ','-').head()
 
 from utilities import (LICENSE_KEY, generate_token, master_player_lookup)
 
 token = generate_token(LICENSE_KEY)['token']
 fantasymath_players = master_player_lookup(token)
 
+fantasymath_players = pd.read_csv('./projects/integration/raw/lookup.csv')
+
 fantasymath_players.head()
 
-all_rosters_w_id = pd.merge(all_rosters,
+all_rosters_w_id = pd.merge(all_rosters_w_pts,
                             fantasymath_players[['fantasymath_id', 'espn_id']],
                             how='left')
 
@@ -151,6 +199,17 @@ def get_league_rosters(lookup, league_id):
 
     all_rosters = pd.concat([process_roster(x) for x in roster_json['teams']],
                             ignore_index=True)
+
+    # score part
+    boxscore_url = ('https://fantasy.espn.com/apis/v3/games/ffl/seasons/2021' +
+                    f'/segments/0/leagues/{league_id}?view=mBoxscore')
+    boxscore_json = requests.get(boxscore_url, cookies={'swid': SWID, 'espn_s2':
+                                                        ESPN_S2}).json()
+    matchup_list = boxscore_json['schedule']
+    scores = pd.concat([proc_played_matchup(x) for x in matchup_list])
+
+    all_rosters = pd.merge(all_rosters, scores, how='left')
+
 
     all_rosters_w_id = pd.merge(all_rosters,
                                 lookup[['fantasymath_id', 'espn_id']],
@@ -169,6 +228,9 @@ teams_url = ('https://fantasy.espn.com/apis/v3/games/ffl/seasons/2021' +
 
 teams_json = requests.get(teams_url, cookies={'swid': SWID, 'espn_s2':
                                               ESPN_S2}).json()
+
+with open('./projects/integration/raw/espn/teams.json') as f:
+    teams_json = json.load(f)
 
 teams_list = teams_json['teams']
 members_list = teams_json['members']
@@ -216,6 +278,9 @@ schedule_url = ('https://fantasy.espn.com/apis/v3/games/ffl/seasons/2021' +
 
 schedule_json = requests.get(schedule_url, cookies={'swid': SWID, 'espn_s2':
                                                     ESPN_S2}).json()
+
+with open('./projects/integration/raw/espn/schedule.json') as f:
+    schedule_json = json.load(f)
 
 matchup_list = schedule_json['schedule']
 

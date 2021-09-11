@@ -68,14 +68,16 @@ opponent_id = schedule_team.loc[
     'opp_id'].values[0]
 
 # then same thing
-opponent_starters = list(rosters.loc[
+opponent_starters = rosters.loc[
     (rosters['team_id'] == opponent_id) & rosters['start'] &
-    rosters['fantasymath_id'].notnull(), 'fantasymath_id'])
+    rosters['fantasymath_id'].notnull(), ['fantasymath_id', 'actual']]
 
 opponent_starters
 
-players_to_sim = (opponent_starters +
-                  list(rosters.query(f"team_id == {TEAM_ID}")['fantasymath_id']))
+players_to_sim = pd.concat([
+    roster[['fantasymath_id', 'actual']],
+    opponent_starters])
+
 
 # sims
 available_players = get_players(token, **SCORING)
@@ -83,18 +85,20 @@ available_players = get_players(token, **SCORING)
 # now get sims
 # easiest to just get sims for every player on our team
 
-sims = get_sims(token, set(players_to_sim) &
+sims = get_sims(token, set(players_to_sim['fantasymath_id'])  &
                 set(available_players['fantasymath_id']), nsims=1000,
                 **SCORING)
+
+players_w_pts = players_to_sim.query("actual.notnull()")
+for player, pts in zip(players_w_pts['fantasymath_id'], players_w_pts['actual']):
+    sims[player] = pts
 
 # wdis options + current starter
 wdis_options = ['kenny-golladay', 'antonio-brown', 'jaylen-waddle',
                 'elijah-moore']
 
-wdis.calculate(sims, current_starters, opponent_starters, wdis_options)
-
-wdis.calculate(sims, current_starters, opponent_starters,
-               ['jalen-hurts', 'ryan-fitzpatrick', 'mac-jones'])
+wdis.calculate(sims, current_starters, opponent_starters['fantasymath_id'],
+               wdis_options)
 
 # cool, still annoying to manipulate wdis options
 

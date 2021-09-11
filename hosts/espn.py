@@ -23,6 +23,16 @@ def get_league_rosters(lookup, league_id, week=None):
     all_rosters = pd.concat([_process_roster(x) for x in roster_json['teams']],
                             ignore_index=True)
 
+    # score part
+    boxscore_url = ('https://fantasy.espn.com/apis/v3/games/ffl/seasons/2021' +
+                    f'/segments/0/leagues/{league_id}?view=mBoxscore')
+    boxscore_json = requests.get(boxscore_url, cookies={'swid': SWID, 'espn_s2':
+                                                        ESPN_S2}).json()
+    matchup_list = boxscore_json['schedule']
+    scores = pd.concat([_proc_played_matchup(x) for x in matchup_list])
+
+    all_rosters = pd.merge(all_rosters, scores, how='left')
+
     all_rosters_w_id = pd.merge(all_rosters,
                                 lookup[['fantasymath_id', 'espn_id']],
                                 how='left').drop('espn_id', axis=1)
@@ -116,6 +126,23 @@ def _process_roster(team):
     roster_df['team_id'] = team_id
     return roster_df
 
+def _proc_played(played):
+    dict_to_return = {}
+    dict_to_return['espn_id'] = played['playerId']
+
+    dict_to_return['actual'] = played['playerPoolEntry']['player']['stats'][0]['appliedTotal']
+    return dict_to_return
+
+def _proc_played_team(team):
+    if 'rosterForMatchupPeriod' in team.keys():
+        return DataFrame([_proc_played(x) for x in
+                          team['rosterForMatchupPeriod']['entries']])
+    else:
+        return DataFrame()
+
+def _proc_played_matchup(matchup):
+    return pd.concat([_proc_played_team(matchup['home']),
+                      _proc_played_team(matchup['away'])], ignore_index=True)
 
 # team helper functions
 def _process_team(team):

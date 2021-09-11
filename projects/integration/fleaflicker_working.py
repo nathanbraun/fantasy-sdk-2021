@@ -5,6 +5,7 @@ import pandas as pd
 import sqlite3
 from utilities import (LICENSE_KEY, generate_token, master_player_lookup,
                        DB_PATH)
+import json
 pd.options.mode.chained_assignment = None
 
 LEAGUE_ID = 316893
@@ -16,7 +17,13 @@ TEAM_ID = 1605156
 roster_url = ('https://www.fleaflicker.com/api/FetchRoster?' +
               f'leagueId={LEAGUE_ID}&teamId={TEAM_ID}')
 
+# gets current data
+# should run/look at, but we're overwriting with saved data next line
 roster_json = requests.get(roster_url).json()
+
+# saved data
+with open('./projects/integration/raw/fleaflicker/roster.json') as f:
+    roster_json = json.load(f)
 
 list_of_starter_slots = roster_json['groups'][0]['slots']
 list_of_bench_slots = roster_json['groups'][1]['slots']
@@ -70,8 +77,31 @@ def process_player2(slot):
 
 [process_player2(x) for x in list_of_starter_slots]
 
+def process_player3(slot):
+    dict_to_return = {}
+
+    if 'leaguePlayer' in slot.keys():
+        fleaflicker_player_dict = slot['leaguePlayer']['proPlayer']
+
+        dict_to_return['name'] = fleaflicker_player_dict['nameFull']
+        dict_to_return['player_position'] = fleaflicker_player_dict['position']
+        dict_to_return['fleaflicker_id'] = fleaflicker_player_dict['id']
+
+        if 'requestedGames' in slot['leaguePlayer']:
+            game = slot['leaguePlayer']['requestedGames'][0]
+            if 'pointsActual' in game:
+                if 'value' in game['pointsActual']:
+                    dict_to_return['actual'] = game['pointsActual']['value']
+
+
+    if 'position' in slot.keys():
+        fleaflicker_position_dict = slot['position']
+
+        dict_to_return['team_position'] = fleaflicker_position_dict['label']
+        return dict_to_return
+
 # list of dicts: put in DataFrame
-starter_df1 = DataFrame([process_player2(x) for x in list_of_starter_slots])
+starter_df1 = DataFrame([process_player3(x) for x in list_of_starter_slots])
 starter_df1
 
 # looks pretty good
@@ -103,7 +133,7 @@ starter_df2 = pd.concat([
 
 starter_df2
 
-bench_df = DataFrame([process_player2(x) for x in list_of_bench_slots])
+bench_df = DataFrame([process_player3(x) for x in list_of_bench_slots])
 
 # now let's ID these and stick them together
 starter_df2['start'] = True
@@ -121,6 +151,9 @@ roster_df['name'].str.lower().str.replace(' ','-').head()
 from utilities import (LICENSE_KEY, generate_token, master_player_lookup)
 token = generate_token(LICENSE_KEY)['token']
 fantasymath_players = master_player_lookup(token)
+
+fantasymath_players = pd.read_csv('./projects/integration/raw/lookup.csv')
+
 fantasymath_players.head()
 
 roster_df_w_id = pd.merge(
@@ -139,8 +172,8 @@ def get_team_roster(team_id, league_id, lookup):
     starter_slots = roster_json['groups'][0]['slots']
     bench_slots = roster_json['groups'][1]['slots']
 
-    starter_df = DataFrame([process_player2(x) for x in starter_slots])
-    bench_df = DataFrame([process_player2(x) for x in bench_slots])
+    starter_df = DataFrame([process_player3(x) for x in starter_slots])
+    bench_df = DataFrame([process_player3(x) for x in bench_slots])
 
     starter_df['start'] = True
     bench_df['start'] = False
@@ -160,10 +193,14 @@ my_roster = get_team_roster(TEAM_ID, LEAGUE_ID, fantasymath_players)
 # team data
 ###############################################################################
 
+# gets current data
+# should run/look at, but we're overwriting with saved data next line
 teams_url = ('https://www.fleaflicker.com/api/FetchLeagueStandings?' +
              f'leagueId={LEAGUE_ID}')
 
-teams_json = requests.get(teams_url).json()
+# saved data
+with open('./projects/integration/raw/fleaflicker/teams.json') as f:
+    teams_json = json.load(f)
 
 # same process - look at json (dict) and see how it's structured
 
@@ -234,9 +271,14 @@ schedule_url = (
     'https://www.fleaflicker.com/api/FetchLeagueScoreboard?' +
     f'leagueId={LEAGUE_ID}&scoringPeriod={WEEK}&season=2021')
 
+# gets current data
+# should run/look at, but we're overwriting with saved data next line
 schedule_json = requests.get(schedule_url).json()
 
-#
+# saved data
+with open('./projects/integration/raw/fleaflicker/schedule.json') as f:
+    schedule_json = json.load(f)
+
 matchup_list = schedule_json['games']
 matchup0 = matchup_list[0]
 

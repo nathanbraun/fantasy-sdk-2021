@@ -1,4 +1,5 @@
 import requests
+import numpy as np
 from pathlib import Path
 from os import path
 from textwrap import dedent
@@ -37,6 +38,7 @@ def get_league_rosters(lookup, league_id, week):
     league_rosters = pd.concat(
         [_get_team_roster(x, league_id, week, lookup) for x in
          teams['team_id']], ignore_index=True)
+    league_rosters['team_position'].replace({'W/R/T': 'WR/RB/TE'}, inplace=True)
     return league_rosters
 
 def get_teams_in_league(league_id):
@@ -130,12 +132,34 @@ def _get_team_roster(team_id, league_id, week, lookup):
 
     roster_df = _process_roster(roster_json['fantasy_content']['team'])
 
-    roster_df_w_id = pd.merge(roster_df,
+    # stats
+    points_url = ('https://fantasysports.yahooapis.com/fantasy/v2/' +
+                    f'team/406.l.{LEAGUE_ID}.t.{team_id}' +
+                "/players;out=metadata,stats,ownership,percent_owned,draft_analysis")
+    points_json = OAUTH.session.get(points_url, params={'format': 'json'}).json()
+
+    player_dict = points_json['fantasy_content']['team'][1]['players']
+    stats = _process_team_stats(player_dict)
+    roster_df_w_stats = pd.merge(roster_df, stats)
+
+    roster_df_w_id = pd.merge(roster_df_w_stats,
                             lookup[['fantasymath_id', 'yahoo_id']],
                             how='left').drop('yahoo_id', axis=1)
 
     return roster_df_w_id
 
+def _process_player_stats(player):
+    dict_to_return = {}
+    dict_to_return['yahoo_id'] = int(player['player'][0][1]['player_id'])
+    dict_to_return['actual'] = float(
+        player['player'][1]['player_points']['total'])
+    return dict_to_return
+
+def _process_team_stats(team):
+    stats = DataFrame([_process_player_stats(player) for key, player in
+                       team.items() if key != 'count'])
+    stats.loc[stats['actual'] == 0, 'actual'] = np.nan
+    return stats
 ###############################################################################
 # team data
 ###############################################################################

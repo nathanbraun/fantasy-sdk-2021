@@ -97,19 +97,25 @@ if __name__ == '__main__':
         'opp_id'].values[0]
 
     # then same thing
-    opponent_starters = list(rosters.loc[
+    opponent_starters = rosters.loc[
         (rosters['team_id'] == opponent_id) & rosters['start'] &
-        rosters['fantasymath_id'].notnull(), 'fantasymath_id'])
+        rosters['fantasymath_id'].notnull(), ['fantasymath_id', 'actual']]
+
 
     # 3. sims
-    players_to_sim = (opponent_starters +
-                    list(rosters.query(f"team_id == {TEAM_ID}")['fantasymath_id']))
-
     available_players = get_players(token, **SCORING)
 
-    sims = get_sims(token, set(players_to_sim) &
+    players_to_sim = pd.concat([
+        roster[['fantasymath_id', 'actual']],
+        opponent_starters])
+
+    sims = get_sims(token, set(players_to_sim['fantasymath_id']) &
                     set(available_players['fantasymath_id']),
                     nsims=1000, **SCORING)
+
+    players_w_pts = players_to_sim.query("actual.notnull()")
+    for player, pts in zip(players_w_pts['fantasymath_id'], players_w_pts['actual']):
+        sims[player] = pts
 
     ################################################
     # analysis - call wdis_by_pos over all positions
@@ -119,7 +125,8 @@ if __name__ == '__main__':
 
     # calling actual analysis function goes here
     df_start = pd.concat(
-        [wdis_by_pos(pos, sims, roster, opponent_starters) for pos in
+        [wdis_by_pos(pos, sims, roster,
+                     list(opponent_starters['fantasymath_id'])) for pos in
          positions])
 
     # extract starters
