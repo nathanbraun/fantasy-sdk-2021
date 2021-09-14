@@ -38,18 +38,28 @@ WILL be updates, many in the next few days.
 Here are my priorities, most important first:
 
 ### Priorities
-- any bug fixes etc that people notice associated with this guide or the
+- [ ] any bug fixes etc that people notice associated with this guide or the
   simulations API; definitely email me — [nate@nathanbraun.com](mailto:nate@nathanbraun.com)
-- league integration/analysis/wdis: ability to automatically take into account
+- [X] league integration/analysis/wdis: ability to automatically take into account
   current, midweek scores (will try to do friday after thu night game)
-- sleeper integration (hopefully very soon)
+- [ ] sleeper integration (hopefully very soon)
 - Fantasy Math web access (ditto)
-- a few simulation API convienence improvements
-- typos, clarity etc
+- [ ] a few simulation API convienence improvements
+- [ ] typos, clarity etc
 
 Check back here for updated versions. Will keep the changelog updated.
 
 ## Changelog
+### v0.1.0 (2021-09-13)
+Update league integration functions to get midweek points.
+
+E.g. if you were running a WDIS analysis on the Friday after week 1, and your
+opponent was starting Gronk, it'd be good to take into account the fact he
+scored 29 PPR points the night before. Functions now do that.
+
+Related: saved some snapshots of raw data for the walk throughs to make it
+easier to follow along.
+
 ### v0.0.4 (2021-09-09)
 Make it clearer license keys go in config.ini, not utilities.py. Drop version
 numbers from code docstrings — too hard to manually keep up to date.
