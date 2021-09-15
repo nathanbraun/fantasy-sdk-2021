@@ -50,6 +50,10 @@ Here are my priorities, most important first:
 Check back here for updated versions. Will keep the changelog updated.
 
 ## Changelog
+### v0.2.0 (2021-09-14)
+Now includes 2021 Fantasy Math web access. Added instructions for accessing in
+book. Basically need to enter you license key at https://fantasymath.com/book
+
 ### v0.1.0 (2021-09-13)
 Update league integration functions to get midweek points.
 
