@@ -43,7 +43,7 @@ Here are my priorities, most important first:
 - [X] league integration/analysis/wdis: ability to automatically take into account
   current, midweek scores (will try to do friday after thu night game)
 - [ ] sleeper integration (hopefully very soon)
-- [ ] Fantasy Math web access (ditto)
+- [X] Fantasy Math web access (ditto)
 - [ ] a few simulation API convienence improvements
 - [ ] typos, clarity etc
 
