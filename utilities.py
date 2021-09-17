@@ -135,7 +135,10 @@ def get_players(token,  qb='pass6', skill='ppr', dst='high', week=None,
                 available({arg_string}) {{
                     fantasymath_id,
                     position,
-                    fleaflicker_id
+                    fleaflicker_id,
+                    espn_id,
+                    yahoo_id,
+                    sleeper_id
                 }}
             }}
             """)
