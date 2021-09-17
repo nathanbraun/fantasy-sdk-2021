@@ -4,37 +4,37 @@ Matchup Projections, Week 1 - 2021
 **********************************
 
    wp_a  wp_b  over_under  line        team_a          team_b
-0  0.50  0.50      181.13   0.0      UnkleJim       WesHeroux
-1  0.61  0.39      195.18   9.0     carnsc815        LisaJean
-2  0.51  0.49      180.22   0.5  Plz-not-last          BRUZDA
-3  0.51  0.49      183.42   0.5        ccarns          nbraun
-4  0.44  0.56      181.70  -4.0  Lzrlightshow  JBKBDomination
-5  0.52  0.48      187.69   1.5       Edmundo     MegRyan0113
+0  0.78  0.22      200.87  20.0      UnkleJim       WesHeroux
+1  0.63  0.37      190.47   8.5     carnsc815        LisaJean
+2  0.40  0.60      172.74  -7.0  Plz-not-last          BRUZDA
+3  0.23  0.77      197.35 -20.5        ccarns          nbraun
+4  0.46  0.54      201.66  -2.5  Lzrlightshow  JBKBDomination
+5  0.34  0.66      201.70 -11.5       Edmundo     MegRyan0113
 
 ********************************
 Team Projections, Week 1 - 2021
 ********************************
 
-                  mean    std     5%    25%     50%     75%     95%  p_high  p_low
-owner_name                                                                        
-carnsc815       101.74  21.23  67.38  86.89  101.97  115.62  137.45    0.17   0.04
-Edmundo          95.10  20.05  60.90  81.34   95.24  108.98  128.30    0.09   0.08
-LisaJean         93.89  21.38  60.19  79.07   92.90  107.07  130.92    0.10   0.08
-MegRyan0113      93.29  20.68  61.61  79.53   91.67  106.80  130.76    0.10   0.08
-ccarns           92.71  19.20  62.36  79.65   92.66  105.44  125.36    0.08   0.08
-JBKBDomination   92.36  19.91  60.75  78.97   91.54  105.37  127.60    0.07   0.06
-nbraun           91.91  20.17  61.19  77.86   90.33  105.35  127.21    0.08   0.08
-Plz-not-last     91.04  20.25  57.57  77.20   90.04  103.45  126.56    0.08   0.09
-BRUZDA           90.68  19.27  61.34  77.22   89.52  103.30  122.67    0.06   0.09
-WesHeroux        90.56  19.58  59.76  76.41   89.98  104.13  124.96    0.06   0.11
-UnkleJim         90.24  18.77  60.18  77.51   89.49  102.18  122.44    0.06   0.09
-Lzrlightshow     88.10  19.06  57.53  74.93   88.00  100.24  118.67    0.05   0.11
+                  mean    std     5%     25%     50%     75%     95%  p_high  p_low
+owner_name                                                                         
+UnkleJim        111.31  16.51  85.31  100.51  110.62  122.34  138.92    0.19   0.01
+nbraun          108.42  18.96  77.59   95.45  107.69  120.70  141.03    0.17   0.02
+MegRyan0113     106.29  19.71  74.95   93.08  105.34  118.28  140.75    0.15   0.03
+JBKBDomination  102.06  17.33  73.96   90.02  101.87  113.03  132.15    0.09   0.03
+carnsc815       100.21  19.91  69.28   85.45   99.03  113.46  133.01    0.10   0.05
+Lzrlightshow     99.97  17.14  72.43   88.30   98.94  111.13  130.52    0.07   0.03
+Edmundo          95.36  20.04  61.91   82.48   95.31  108.76  129.10    0.06   0.10
+LisaJean         91.16  16.89  64.22   79.59   91.15  101.87  119.00    0.03   0.09
+WesHeroux        91.03  20.41  59.45   77.39   90.39  104.36  124.66    0.05   0.14
+BRUZDA           90.03  19.32  59.93   76.54   89.25  102.81  123.33    0.04   0.14
+ccarns           89.09  18.97  59.45   75.99   88.38  101.04  120.20    0.03   0.14
+Plz-not-last     82.84  18.85  51.89   70.08   82.02   95.31  115.51    0.02   0.23
 
 Lock of the week:
-carnsc815 over LisaJean — 0.61
+UnkleJim over WesHeroux — 0.78
 
 Photo-finish of the week::
-UnkleJim vs WesHeroux, 0.5-0.5
+Lzrlightshow vs JBKBDomination, 0.46-0.54
 
 Most unexciting game of the week:
-Plz-not-last vs BRUZDA, 180.22
+Plz-not-last vs BRUZDA, 172.74

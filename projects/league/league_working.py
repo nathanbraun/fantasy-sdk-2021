@@ -14,14 +14,18 @@ from utilities import (get_sims, generate_token, LICENSE_KEY, DB_PATH,
 
 
 LEAGUE_ID = 316893
-WEEK = 1
+WEEK = 2
 
 # first: get league data from DB + roster data by connecting to site
 conn = sqlite3.connect(DB_PATH)
 
-teams = db.read_league('teams', LEAGUE_ID, conn)
-schedule = db.read_league('schedule', LEAGUE_ID, conn)
-league = db.read_league('league', LEAGUE_ID, conn)
+# teams = db.read_league('teams', LEAGUE_ID, conn)
+# schedule = db.read_league('schedule', LEAGUE_ID, conn)
+# league = db.read_league('league', LEAGUE_ID, conn)
+
+teams = pd.read_csv('./projects/league/raw/teams.csv')
+schedule = pd.read_csv('./projects/league/raw/schedule.csv')
+league = pd.read_csv('./projects/league/raw/league.csv')
 
 # set other parameters
 TEAM_ID = league.iloc[0]['team_id']
@@ -33,17 +37,20 @@ SCORING['dst'] = league.iloc[0]['dst_scoring']
 
 # then rosters
 token = generate_token(LICENSE_KEY)['token']
-player_lookup = master_player_lookup(token)
+# player_lookup = master_player_lookup(token)
 
-rosters = (site.get_league_rosters(player_lookup, LEAGUE_ID)
-           .query("start"))
+# rosters = (site.get_league_rosters(player_lookup, LEAGUE_ID)
+#            .query("start"))
+
+player_lookup = pd.read_csv('./projects/league/raw/player_lookup.csv')
+rosters = pd.read_csv('./projects/league/raw/rosters.csv').query("start")
 
 # making sure we query only valid players
-available_players = get_players(token, **SCORING)
+available_players = get_players(token, week=WEEK, season=2021, **SCORING)
 
 sims = get_sims(token, (set(rosters['fantasymath_id']) &
-                set(available_players['fantasymath_id'])),
-                nsims=1000, **SCORING)
+                 set(available_players['fantasymath_id'])),
+                week=WEEK, season=2021, nsims=1000, **SCORING)
 
 players_w_pts = rosters.query("actual.notnull()")
 for player, pts in zip(players_w_pts['fantasymath_id'], players_w_pts['actual']):
@@ -56,8 +63,8 @@ for player, pts in zip(players_w_pts['fantasymath_id'], players_w_pts['actual'])
 schedule_this_week = schedule.query(f"week == {WEEK}")
 schedule_this_week
 
-team1 = 1603352
-team2 = 1605152
+team1 = 1605156
+team2 = 1605155
 
 rosters.query(f"team_id == {team1}")['fantasymath_id']
 
@@ -158,6 +165,8 @@ team_to_owner
 
 matchup_df = DataFrame(matchup_list)  # start over with this to get team_ids
 matchup_df[['team_a', 'team_b']] = matchup_df[['team_a', 'team_b']].replace(team_to_owner)
+
+matchup_df
 
 # "lock of the week" (highest win prob)
 
