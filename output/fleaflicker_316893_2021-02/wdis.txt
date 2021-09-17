@@ -1,0 +1,46 @@
+WDIS Analysis, Fleaflicker League 316893, Week 2
+
+Run at 2021-09-17 10:04:27.761777
+
+Recommended Starters:
+QB: jalen-hurts
+RB1: clyde-edwards-helaire
+RB2: najee-harris
+RB/WR/TE: myles-gaskin
+WR1: antonio-brown
+WR2: davante-adams
+TE: george-kittle
+K: greg-zuerlein
+D/ST: no-dst
+
+Detailed Projections and Win Probability:
+                                     mean     wp  wrong  regret
+pos      player                                                
+QB       jalen-hurts            94.377542  0.554  0.358   0.032
+         mac-jones              90.375185  0.491  0.642   0.095
+RB1      clyde-edwards-helaire  94.377542  0.554  0.630   0.068
+         tyson-williams         92.330186  0.523  0.764   0.099
+         javonte-williams       91.572212  0.511  0.813   0.111
+         elijah-mitchell-rb     91.290203  0.499  0.793   0.123
+RB2      najee-harris           94.377542  0.554  0.502   0.055
+         tyson-williams         89.190119  0.485  0.802   0.124
+         javonte-williams       88.432145  0.470  0.839   0.139
+         elijah-mitchell-rb     88.150137  0.468  0.857   0.141
+RB/WR/TE myles-gaskin           94.377542  0.554  0.786   0.091
+         tyson-williams         94.229789  0.551  0.793   0.094
+         javonte-williams       93.471814  0.532  0.835   0.113
+         elijah-mitchell-rb     93.189806  0.530  0.833   0.115
+         christian-kirk         92.200422  0.522  0.876   0.123
+         jaylen-waddle          92.375368  0.513  0.877   0.132
+WR1      antonio-brown          94.377542  0.554  0.564   0.051
+         jaylen-waddle          92.720904  0.523  0.712   0.082
+         christian-kirk         92.545959  0.520  0.724   0.085
+WR2      davante-adams          94.377542  0.554  0.398   0.030
+         christian-kirk         88.518732  0.468  0.798   0.116
+         jaylen-waddle          88.693678  0.465  0.804   0.119
+TE       george-kittle          94.377542  0.554  0.000   0.000
+K        greg-zuerlein          94.377542  0.554  0.000   0.000
+D/ST     no-dst                 94.377542  0.554  0.456   0.041
+         ari-dst                93.703521  0.539  0.544   0.056
+
+Current starters maximize probability of winning.

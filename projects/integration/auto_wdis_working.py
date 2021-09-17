@@ -10,7 +10,7 @@ from utilities import (LICENSE_KEY, generate_token, master_player_lookup,
                        get_sims, get_players, DB_PATH, OUTPUT_PATH)
 
 LEAGUE_ID = 316893
-WEEK = 1
+WEEK = 2
 
 # open up our database connection
 conn = sqlite3.connect(DB_PATH)
@@ -19,9 +19,22 @@ conn = sqlite3.connect(DB_PATH)
 # load team and schedule data from DB
 #######################################
 
-teams = db.read_league('teams', LEAGUE_ID, conn)
-schedule = db.read_league('schedule', LEAGUE_ID, conn)
-league = db.read_league('league', LEAGUE_ID, conn)
+###############################################################################
+# normally: run this - AFTER you've run ./hosts/league_setup.py w/ your league
+###############################################################################
+
+# teams = db.read_league('teams', LEAGUE_ID, conn)
+# schedule = db.read_league('schedule', LEAGUE_ID, conn)
+# league = db.read_league('league', LEAGUE_ID, conn)
+# host = league.iloc[0]['host']
+
+###############################################################################
+# but for this example, using outputs i've saved here
+###############################################################################
+
+teams = pd.read_csv('./projects/integration/raw/wdis/teams.csv')
+schedule = pd.read_csv('./projects/integration/raw/wdis/schedule.csv')
+league = pd.read_csv('./projects/integration/raw/wdis/league.csv')
 host = league.iloc[0]['host']
 
 # get parameters from league DataFrame
@@ -40,7 +53,10 @@ SCORING['dst'] = league.iloc[0]['dst_scoring']
 token = generate_token(LICENSE_KEY)['token']
 player_lookup = master_player_lookup(token).query("fleaflicker_id.notnull()")
 
-rosters = site.get_league_rosters(player_lookup, LEAGUE_ID, WEEK)
+player_lookup = pd.read_csv('./projects/integration/raw/wdis/player_lookup.csv')
+
+# rosters = site.get_league_rosters(player_lookup, LEAGUE_ID, WEEK)
+rosters = pd.read_csv('./projects/integration/raw/wdis/rosters.csv')
 
 # what we need for wdis:
 # list of our starters
@@ -78,27 +94,29 @@ players_to_sim = pd.concat([
     roster[['fantasymath_id', 'actual']],
     opponent_starters])
 
-
 # sims
-available_players = get_players(token, **SCORING)
+# available_players = get_players(token, season=2021, week=WEEK, **SCORING)
+available_players = pd.read_csv('./projects/integration/raw/wdis/available_players.csv')
 
 # now get sims
 # easiest to just get sims for every player on our team
 
 sims = get_sims(token, set(players_to_sim['fantasymath_id'])  &
-                set(available_players['fantasymath_id']), nsims=1000,
-                **SCORING)
+                set(available_players['fantasymath_id']), season=2021,
+                week=WEEK, nsims=1000, **SCORING)
 
 players_w_pts = players_to_sim.query("actual.notnull()")
 for player, pts in zip(players_w_pts['fantasymath_id'], players_w_pts['actual']):
     sims[player] = pts
 
 # wdis options + current starter
-wdis_options = ['kenny-golladay', 'antonio-brown', 'jaylen-waddle',
-                'elijah-moore']
+wdis_options = ['antonio-brown', 'jaylen-waddle', 'christian-kirk']
 
 wdis.calculate(sims, current_starters, opponent_starters['fantasymath_id'],
                wdis_options)
+
+wdis.calculate(sims, current_starters, opponent_starters['fantasymath_id'],
+               ['jalen-hurts', 'mac-jones'])
 
 # cool, still annoying to manipulate wdis options
 
@@ -143,7 +161,7 @@ bench_wr1_elig = ((roster['player_position']
 wdis_ids = list(roster.loc[bench_wr1_elig, 'fantasymath_id'])
 wdis_ids
 
-wdis.calculate(sims, current_starters, opponent_starters, wdis_ids)
+wdis.calculate(sims, current_starters, opponent_starters['fantasymath_id'], wdis_ids)
 
 # as always, let's put this in a function
 def wdis_options_by_pos(roster, team_pos):
@@ -158,7 +176,8 @@ wdis_players_flex = wdis_options_by_pos(roster, 'RB/WR/TE')
 wdis_players_flex
 
 # easy to plug into calculate
-df_flex = wdis.calculate(sims, current_starters, opponent_starters,
+df_flex = wdis.calculate(sims, current_starters,
+                         opponent_starters['fantasymath_id'],
                          wdis_players_flex)
 
 df_flex
@@ -171,11 +190,24 @@ def wdis_by_pos1(pos, sims, roster, opp_starters):
         rosters['start'] &
         rosters['fantasymath_id'].notnull(), 'fantasymath_id'])
 
-    return wdis.calculate(sims, starters, opponent_starters,
+    return wdis.calculate(sims, starters, opp_starters,
                           set(wdis_options) & set(sims.columns))
 
-wdis_by_pos1('QB', sims, roster, opponent_starters)
-wdis_by_pos1('RB/WR/TE', sims, roster, opponent_starters)
+wdis_by_pos1('QB', sims, roster, opponent_starters['fantasymath_id'])
+wdis_by_pos1('RB/WR/TE', sims, roster, opponent_starters['fantasymath_id'])
+
+positions = list(roster.loc[roster['start'] & roster['fantasymath_id'].notnull(), 'team_position'])
+positions
+
+def positions_from_roster(roster):
+    return list(roster.loc[roster['start'] &
+                           roster['fantasymath_id'].notnull(),
+                           'team_position'])
+
+positions_from_roster(roster)
+
+for pos in positions:
+    print(wdis_by_pos1(pos, sims, roster, opponent_starters))
 
 # cool to add name of player to start
 def wdis_by_pos2(pos, sims, roster, opp_starters):
@@ -185,7 +217,7 @@ def wdis_by_pos2(pos, sims, roster, opp_starters):
         rosters['start'] &
         rosters['fantasymath_id'].notnull(), 'fantasymath_id'])
 
-    df = wdis.calculate(sims, starters, opponent_starters,
+    df = wdis.calculate(sims, starters, opp_starters,
                         set(wdis_options) & set(sims.columns))
 
     rec_start_id = df['wp'].idxmax()
@@ -197,19 +229,12 @@ def wdis_by_pos2(pos, sims, roster, opp_starters):
 
     return df
 
-wdis_by_pos2('QB', sims, roster, opponent_starters)
-
-positions = list(roster.loc[roster['start'] & roster['fantasymath_id'].notnull(), 'team_position'])
-
-def positions_from_roster(roster):
-    return list(roster.loc[roster['start'] &
-                           roster['fantasymath_id'].notnull(),
-                           'team_position'])
-
-positions_from_roster(roster)
+wdis_by_pos2('QB', sims, roster, opponent_starters['fantasymath_id'])
 
 df_start = pd.concat(
-    [wdis_by_pos2(pos, sims, roster, opponent_starters) for pos in positions])
+    [wdis_by_pos2(pos, sims, roster, opponent_starters['fantasymath_id']) for
+     pos in positions])
+
 df_start.head(10)
 
 df_start.xs('WR1')
@@ -223,6 +248,7 @@ positions
 for pos, starter in zip(positions, rec_starters):
     print(f"at {pos}, start {starter}")
 
+# writing to a file
 my_file = open('league_info.txt', 'w')
 print(f"Your league is {LEAGUE_ID}!", file=my_file)
 
