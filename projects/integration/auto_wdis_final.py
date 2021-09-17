@@ -12,8 +12,11 @@ from utilities import (LICENSE_KEY, generate_token, master_player_lookup,
                        get_sims, get_players, DB_PATH, OUTPUT_PATH,
                        schedule_long)
 
+# enter your league ID info here
+# used to get correct data out of db
+# note: you NEED to have run `create_league.py` on whatever you do here
 LEAGUE_ID = 34958
-WEEK = 1
+WEEK = 2
 
 def wdis_by_pos(pos, sims, roster, opponent_starters):
     wdis_options = wdis_options_by_pos(roster, pos)
