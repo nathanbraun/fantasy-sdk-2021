@@ -50,6 +50,11 @@ Here are my priorities, most important first:
 Check back here for updated versions. Will keep the changelog updated.
 
 ## Changelog
+### v0.4.0 (2021-09-17)
+The automatic WDIS and league analysis projects now use a snapshot of saved
+data (that I've included in this repository) to make it easier to run through
+it and see what I'm seeing.
+
 ### v0.3.0 (2021-09-17)
 Bugfix - `get_players` utility function now returns ESPN, Yahoo, and Sleeper
 IDs.
