@@ -36,6 +36,7 @@ fantasymath_players = master_player_lookup(token)
 fantasymath_players.head()
 
 starters9 = Series(team9['starters']).to_frame('sleeper_id')
+starters9
 
 DataFrame([{'sleeper_id': x} for x in team9['starters']])
 
