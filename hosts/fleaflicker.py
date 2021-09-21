@@ -29,6 +29,15 @@ def get_teams_in_league(league_id):
     teams_df['league_id'] = league_id
     return teams_df
 
+def get_league_schedule(league_id):
+    return pd.concat([_get_schedule_by_week(league_id, week) for week in
+                      range(1, 15)], ignore_index=True)
+
+##################
+# helper functions
+##################
+
+# roster helper functions
 def _process_player(slot):
     dict_to_return = {}
 
@@ -53,15 +62,6 @@ def _process_player(slot):
         return dict_to_return
 
 # list of dicts: put in DataFrame
-def get_league_schedule(league_id):
-    return pd.concat([_get_schedule_by_week(league_id, week) for week in
-                      range(1, 15)], ignore_index=True)
-
-##################
-# helper functions
-##################
-
-# roster helper functions
 
 def _add_pos_suffix(df_subset):
     if len(df_subset) > 1:
