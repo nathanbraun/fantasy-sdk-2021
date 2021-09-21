@@ -42,7 +42,7 @@ Here are my priorities, most important first:
   simulations API; definitely email me — [nate@nathanbraun.com](mailto:nate@nathanbraun.com)
 - [X] league integration/analysis/wdis: ability to automatically take into account
   current, midweek scores (will try to do friday after thu night game)
-- [ ] sleeper integration (hopefully very soon)
+- [X] sleeper integration (hopefully very soon)
 - [X] Fantasy Math web access (ditto)
 - [ ] a few simulation API convienence improvements
 - [ ] typos, clarity etc
@@ -50,6 +50,10 @@ Here are my priorities, most important first:
 Check back here for updated versions. Will keep the changelog updated.
 
 ## Changelog
+### v0.5.0 (2021-09-21)
+Added sleeper integration. Like other platforms, uses a snapshot of saved data
+that's included here. Should make it easier to follow along.
+
 ### v0.4.0 (2021-09-17)
 The automatic WDIS and league analysis projects now use a snapshot of saved
 data (that I've included in this repository) to make it easier to run through

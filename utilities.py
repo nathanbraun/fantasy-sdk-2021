@@ -19,7 +19,6 @@ config.read('config.ini')
 # constants - mostly loaded from config.ini - shouldn't need to change
 # if not working make sure you have config.ini set up
 API_URL = 'https://api.sims.fantasymath.com'
-# API_URL = 'http://localhost:5000'
 
 LICENSE_KEY = config['sdk']['LICENSE_KEY']
 OUTPUT_PATH = config['sdk']['OUTPUT_PATH']
