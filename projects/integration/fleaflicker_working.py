@@ -1,5 +1,6 @@
 import requests
 from textwrap import dedent
+import numpy as np
 from pandas import DataFrame, Series
 import pandas as pd
 import sqlite3
@@ -184,6 +185,9 @@ def get_team_roster(team_id, league_id, lookup):
     team_df_w_id = pd.merge(team_df,
                             lookup[['fantasymath_id', 'fleaflicker_id']],
                             how='left').drop('fleaflicker_id', axis=1)
+
+    if 'actual' not in team_df_w_id.columns:
+        team_df_w_id['actual'] = np.nan
 
     return team_df_w_id
 

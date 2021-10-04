@@ -50,6 +50,9 @@ Here are my priorities, most important first:
 Check back here for updated versions. Will keep the changelog updated.
 
 ## Changelog
+### v0.5.1 (2021-10-04)
+Minor bugfix to fleaflicker integration code.
+
 ### v0.5.0 (2021-09-21)
 Added sleeper integration. Like other platforms, uses a snapshot of saved data
 that's included here. Should make it easier to follow along.

@@ -1,4 +1,5 @@
 import hosts.fleaflicker as site
+import numpy as np
 import hosts.db as db
 import sqlite3
 import pandas as pd
@@ -194,8 +195,8 @@ if __name__ == '__main__':
 
     # then analyze
     pd.concat([
-        high_score.describe(percentiles=[.05, .25, .5, .75, .95]),
-        low_score.describe(percentiles=[.05, .25, .5, .75, .95])], axis=1)
+        high_score.describe(percentiles=[.05, .25, .5, .75, .95]).to_frame('high'),
+        low_score.describe(percentiles=[.05, .25, .5, .75, .95]).to_frame('low')], axis=1)
 
 
     # add owner
