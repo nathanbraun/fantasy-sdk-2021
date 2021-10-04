@@ -1,149 +1,172 @@
-import pandas as pd
+import hosts.fleaflicker as site
+import hosts.db as db
 from os import path
-import seaborn as sns
-from utilities import generate_token, get_sims, LICENSE_KEY, OUTPUT_PATH
+import datetime as dt
+from pandas import DataFrame, Series
+import sqlite3
+import wdis
+import pandas as pd
+from pathlib import Path
+from os import path
+from utilities import (LICENSE_KEY, generate_token, master_player_lookup,
+                       get_sims, get_players, DB_PATH, OUTPUT_PATH,
+                       schedule_long)
 
-WEEK = 1
-SEASON = 2019
-NSIMS = 1000
-SCORING = {'qb': 'pass6', 'skill': 'ppr', 'dst': 'high'}
+# enter your league ID info here
+# used to get correct data out of db
+# note: you NEED to have run `create_league.py` on whatever you do here
+LEAGUE_ID = 34958
+WEEK = 2
 
-team1 = ['drew-brees', 'alvin-kamara', 'sony-michel', 'julio-jones',
-        'keenan-allen', 'jared-cook', 'matt-prater', 'lar-dst']
+def wdis_by_pos(pos, sims, roster, opponent_starters):
+    wdis_options = wdis_options_by_pos(roster, pos)
 
-team2 = ['russell-wilson', 'christian-mccaffrey', 'saquon-barkley',
-            'corey-davis', 'dante-pettis', 'greg-olsen', 'matt-gay',
-            'buf-dst']
+    starters = list(roster.loc[rosters['start'] &
+                               rosters['fantasymath_id'].notnull(),
+                               'fantasymath_id'])
 
-wdis = ['sony-michel', 'lesean-mccoy', 'phillip-lindsay', 'royce-freeman']
+    df = wdis.calculate(sims, starters, opponent_starters, set(wdis_options) &
+                        set(sims.columns))
 
-def start_bench_scenarios(wdis):
-    """
-    Return all combinations of start, backups for all players in wdis.
-    """
-    return [{
-        'starter': player,
-        'bench': [x for x in wdis if x != player]
-    } for player in wdis]
+    df['pos'] = pos
+    df.index.name = 'player'
+    df.reset_index(inplace=True)
+    df.set_index(['pos', 'player'], inplace=True)
 
-def calculate(sims, team1, team2, wdis):
+    return df
 
-    # do some validity checks
-    current_starter = set(team1) & set(wdis)
-    assert len(current_starter) == 1
+# as always, let's put this in a function
+def wdis_options_by_pos(roster, team_pos):
+    is_wdis_elig = ((roster['player_position']
+                    .astype(str)
+                    .apply(lambda x: x in team_pos) & ~roster['start']) |
+                    (roster['team_position'] == team_pos))
 
-    # bench_options = set(wdis) - set(team1)
-    # if len(bench_options) >= 0:
-    #     print("warning - no bench options")
+    return list(roster.loc[is_wdis_elig, 'fantasymath_id'])
 
-    wdis = list(set(wdis) & set(sims.columns))
-
-    team_sans_starter = list(set(team1) - current_starter)
-
-    scenarios = start_bench_scenarios(wdis)
-    team2_total = sims[team2].sum(axis=1)  # opp
-
-    # note these functions all work with sims, even though they don't take sims
-    # as an argument
-    # it works because everything inside calculate has access to sims
-    # if these functions were defined outside of calculate it wouldn't work
-    # this is an example of lexical scope: https://stackoverflow.com/a/53062093
-    def sumstats(starter):
-        team_w_starter = sims[team_sans_starter].sum(axis=1) + sims[starter]
-        team_info = (team_w_starter
-                    .describe(percentiles=[.05, .25, .5, .75, .95])
-                    .drop(['count', 'min', 'max']))
-
-        return team_info
-
-    def win_prob(starter):
-        team_w_starter = sims[team_sans_starter].sum(axis=1) + sims[starter]
-        return (team_w_starter > team2_total).mean()
-
-    def wrong_prob(starter, bench):
-        return (sims[bench].max(axis=1) > sims[starter]).mean()
-
-    def regret_prob(starter, bench):
-        team_w_starter = sims[team_sans_starter].sum(axis=1) + sims[starter]
-        team_w_best_backup = (sims[team_sans_starter].sum(axis=1) +
-                            sims[bench].max(axis=1))
-
-        return ((team_w_best_backup > team2_total) &
-                (team_w_starter < team2_total)).mean()
-
-
-    # start with DataFrame of summary stats
-    df = pd.concat([sumstats(player) for player in wdis], axis=1)
-    df.columns = wdis
-    df = df.T
-
-    # then add prob of win, being wrong, regretting decision
-    df['wp'] = [win_prob(x['starter']) for x in scenarios]
-    df['wrong'] = [wrong_prob(**x) for x in scenarios]
-    df['regret'] = [regret_prob(**x) for x in scenarios]
-
-    return df.sort_values('wp', ascending=False)
-
-def plot(sims, team1, team2, wdis):
-
-    # do some validity checks
-    current_starter = set(team1) & set(wdis)
-    assert len(current_starter) == 1
-
-    bench_options = set(wdis) - set(team1)
-    assert len(bench_options) >= 1
-
-    #
-    team_sans_starter = list(set(team1) - current_starter)
-
-    # total team points under allt he starters
-    points_wide = pd.concat(
-        [sims[team_sans_starter].sum(axis=1) + sims[player] for player in
-         wdis], axis=1)
-
-    points_wide.columns = wdis
-
-    # add in apponent
-    points_wide['opp'] = sims[team2].sum(axis=1)
-
-    # shift data from columns to rows to work with seaborn
-    points_long = points_wide.stack().reset_index()
-    points_long.columns = ['sim', 'team', 'points']
-
-    # actual plotting portion
-    g = sns.FacetGrid(points_long, hue='team', aspect=4)
-    g = g.map(sns.kdeplot, 'points', shade=True)
-    g.add_legend()
-    g.fig.subplots_adjust(top=0.9)
-    g.fig.suptitle('Team Fantasy Points Distributions - WDIS Options')
-
-    return g
+def positions_from_roster(roster):
+    return list(roster.loc[roster['start'] &
+                           roster['fantasymath_id'].notnull(),
+                           'team_position'])
 
 if __name__ == '__main__':
+    # open up our database connection
+    conn = sqlite3.connect(DB_PATH)
 
-    # generate access token
+    #######################################
+    # load team and schedule data from DB
+    #######################################
+
+    teams = db.read_league('teams', LEAGUE_ID, conn)
+    schedule = db.read_league('schedule', LEAGUE_ID, conn)
+    league = db.read_league('league', LEAGUE_ID, conn)
+
+    # get parameters from league DataFrame
+
+    TEAM_ID = league.iloc[0]['team_id']
+    HOST = league.iloc[0]['host']
+    SCORING = {}
+    SCORING['qb'] = league.iloc[0]['qb_scoring']
+    SCORING['skill'] = league.iloc[0]['skill_scoring']
+    SCORING['dst'] = league.iloc[0]['dst_scoring']
+
+    #####################
+    # get current rosters
+    #####################
+
+    # need players from FM API
     token = generate_token(LICENSE_KEY)['token']
+    player_lookup = master_player_lookup(token).query("fleaflicker_id.notnull()")
 
-    players = list(set(team1) | set(team2) | set(wdis))
+    rosters = site.get_league_rosters(player_lookup, LEAGUE_ID, WEEK)
 
-    sims = get_sims(token, players, week=WEEK, season=SEASON, nsims=NSIMS,
-                        **SCORING)
+    ########################
+    # what we need for wdis:
+    ########################
+    # 1. list of our starters
 
-    df = calculate(sims, team1, team2, wdis)
+    roster = rosters.query(f"team_id == {TEAM_ID}")
 
-    g = plot(sims, team1, team2, wdis)
+    current_starters = list(roster.loc[roster['start'] &
+                                       roster['fantasymath_id'].notnull(),
+                                       'fantasymath_id'])
 
-    g.fig.savefig(path.join(OUTPUT_PATH, 'wdis_dist_by_team.png'),
-                bbox_inches='tight', dpi=500)
+    # 2. list of opponent's starters
 
-    # plot wdis players
-    pw = sims[wdis].stack().reset_index()
-    pw.columns = ['sim', 'player', 'points']
+    # first: use schedule to find our opponent this week
+    schedule_team = schedule_long(schedule)
+    opponent_id = schedule_team.loc[
+        (schedule_team['team_id'] == TEAM_ID) & (schedule_team['week'] == WEEK),
+        'opp_id'].values[0]
 
-    g = sns.FacetGrid(pw, hue='player', aspect=2)
-    g = g.map(sns.kdeplot, 'points', shade=True)
-    g.add_legend()
-    g.fig.subplots_adjust(top=0.9)
-    g.fig.suptitle(f'WDIS Projections')
-    g.fig.savefig(path.join(WDIS_PATH, f'player_wdis_dist_{WEEK}.png'),
-                bbox_inches='tight', dpi=500)
+    # then same thing
+    opponent_starters = rosters.loc[
+        (rosters['team_id'] == opponent_id) & rosters['start'] &
+        rosters['fantasymath_id'].notnull(), ['fantasymath_id', 'actual']]
+
+
+    # 3. sims
+    available_players = get_players(token, **SCORING)
+
+    players_to_sim = pd.concat([
+        roster[['fantasymath_id', 'actual']],
+        opponent_starters])
+
+    sims = get_sims(token, set(players_to_sim['fantasymath_id']) &
+                    set(available_players['fantasymath_id']),
+                    nsims=1000, **SCORING)
+
+    players_w_pts = players_to_sim.query("actual.notnull()")
+    for player, pts in zip(players_w_pts['fantasymath_id'], players_w_pts['actual']):
+        sims[player] = pts
+
+    ################################################
+    # analysis - call wdis_by_pos over all positions
+    ################################################
+
+    positions = positions_from_roster(roster)
+
+    # calling actual analysis function goes here
+    df_start = pd.concat(
+        [wdis_by_pos(pos, sims, roster,
+                     list(opponent_starters['fantasymath_id'])) for pos in
+         positions])
+
+    # extract starters
+    rec_starters = [df_start.xs(pos)['wp'].idxmax() for pos in positions]
+
+    ######################
+    # write output to file
+    ######################
+
+    league_wk_output_dir = path.join(
+        OUTPUT_PATH, f'{HOST}_{LEAGUE_ID}_2021-{str(WEEK).zfill(2)}')
+
+    Path(league_wk_output_dir).mkdir(exist_ok=True)
+
+    wdis_output_file = path.join(league_wk_output_dir, 'wdis.txt')
+
+    with open(wdis_output_file, 'w') as f:
+        print(f"WDIS Analysis, Fleaflicker League {LEAGUE_ID}, Week {WEEK}", file=f)
+        print("", file=f)
+        print(f"Run at {dt.datetime.now()}", file=f)
+        print("", file=f)
+        print("Recommended Starters:", file=f)
+        for starter, pos in zip(rec_starters, positions):
+            print(f"{pos}: {starter}", file=f)
+
+        print("", file=f)
+        print("Detailed Projections and Win Probability:", file=f)
+        print(df_start[['mean', 'wp', 'wrong', 'regret']], file=f)
+        print("", file=f)
+
+        if set(current_starters) == set(rec_starters):
+            print("Current starters maximize probability of winning.", file=f)
+        else:
+            print("Not maximizing probability of winning.", file=f)
+            print("", file=f)
+            print("Start:", file=f)
+            print(set(rec_starters) - set(current_starters), file=f)
+            print("", file=f)
+            print("Instead of:", file=f)
+            print(set(current_starters) - set(rec_starters), file=f)
