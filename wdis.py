@@ -4,7 +4,7 @@ from os import path
 import datetime as dt
 from pandas import DataFrame, Series
 import sqlite3
-import wdis
+import wdis_manual as wdis
 import pandas as pd
 from pathlib import Path
 from os import path

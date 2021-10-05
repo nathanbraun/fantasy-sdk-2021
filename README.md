@@ -50,6 +50,9 @@ Here are my priorities, most important first:
 Check back here for updated versions. Will keep the changelog updated.
 
 ## Changelog
+### v0.5.3 (2021-10-05)
+Bugfix related to the moving the wdis module.
+
 ### v0.5.2 (2021-10-04)
 Moved the final, auto wdis league integration from
 `./projects/integration/wdis_auto_final.py` to `./wdis.py`. Renamed the old
