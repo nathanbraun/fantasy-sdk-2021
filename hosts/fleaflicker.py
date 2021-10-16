@@ -1,9 +1,7 @@
 import requests
-from textwrap import dedent
 from pandas import DataFrame, Series
 import pandas as pd
 from utilities import (LICENSE_KEY, generate_token, master_player_lookup)
-import sqlite3
 import numpy as np
 
 pd.options.mode.chained_assignment = None

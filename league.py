@@ -1,11 +1,9 @@
 import hosts.fleaflicker as site
-import numpy as np
 import hosts.db as db
 import sqlite3
 import pandas as pd
 from os import path
 from pathlib import Path
-import matplotlib.pyplot as plt
 import seaborn as sns
 from textwrap import dedent
 from pandas import DataFrame

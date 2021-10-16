@@ -1,12 +1,8 @@
 import requests
 import numpy as np
-from textwrap import dedent
 from pandas import DataFrame, Series
 import pandas as pd
-import sqlite3
-from utilities import (LICENSE_KEY, generate_token, master_player_lookup,
-                       DB_PATH, API_URL)
-import json
+from utilities import (LICENSE_KEY, generate_token, master_player_lookup)
 pd.options.mode.chained_assignment = None
 
 ######################

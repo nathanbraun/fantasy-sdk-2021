@@ -1,14 +1,10 @@
-import requests
 import numpy as np
 from pathlib import Path
-from os import path
-from textwrap import dedent
 from pandas import DataFrame, Series
 import pandas as pd
 from utilities import (LICENSE_KEY, generate_token, master_player_lookup,
-                       YAHOO_FILE, YAHOO_KEY, YAHOO_SECRET)
+                       YAHOO_FILE, YAHOO_KEY)
 from yahoo_oauth import OAuth2
-import sqlite3
 import json
 
 pd.options.mode.chained_assignment = None
