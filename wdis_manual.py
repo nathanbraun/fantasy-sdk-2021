@@ -145,5 +145,5 @@ if __name__ == '__main__':
     g.add_legend()
     g.fig.subplots_adjust(top=0.9)
     g.fig.suptitle(f'WDIS Projections')
-    g.fig.savefig(path.join(WDIS_PATH, f'player_wdis_dist_{WEEK}.png'),
+    g.fig.savefig(path.join(OUTPUT_PATH, f'player_wdis_dist_{WEEK}.png'),
                 bbox_inches='tight', dpi=500)

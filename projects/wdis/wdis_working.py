@@ -2,8 +2,8 @@ import pandas as pd
 from os import path
 import seaborn as sns
 from pandas import Series
-from utilities import (generate_token, get_sims, LICENSE_KEY, WDIS_PATH,
-                       get_players)
+from utilities import (generate_token, get_sims, LICENSE_KEY, get_players,
+                       OUTPUT_PATH)
 
 # generate access token
 token = generate_token(LICENSE_KEY)['token']
@@ -331,7 +331,7 @@ g = g.map(sns.kdeplot, 'points', shade=True)
 g.add_legend()
 g.fig.subplots_adjust(top=0.9)
 g.fig.suptitle('Team Fantasy Points Distributions')
-g.fig.savefig(path.join(WDIS_PATH, 'wdis_dist_by_team1.png'),
+g.fig.savefig(path.join(OUTPUT_PATH, 'wdis', 'wdis_dist_by_team1.png'),
               bbox_inches='tight', dpi=500)
 
 
@@ -360,7 +360,7 @@ g = g.map(sns.kdeplot, 'points', shade=True)
 g.add_legend()
 g.fig.subplots_adjust(top=0.9)
 g.fig.suptitle('Team Fantasy Points Distributions - WDIS Options')
-g.fig.savefig(path.join(WDIS_PATH, 'wdis_dist_by_team2.png'),
+g.fig.savefig(path.join(OUTPUT_PATH,'wdis', 'wdis_dist_by_team2.png'),
               bbox_inches='tight', dpi=500)
 
 def wdis_plot(sims, team1, team2, wdis):
@@ -409,5 +409,5 @@ g = g.map(sns.kdeplot, 'points', shade=True)
 g.add_legend()
 g.fig.subplots_adjust(top=0.9)
 g.fig.suptitle(f'WDIS Projections')
-g.fig.savefig(path.join(WDIS_PATH, f'player_wdis_dist_{WEEK}.png'),
+g.fig.savefig(path.join(OUTPUT_PATH, 'wdis', f'player_wdis_dist_{WEEK}.png'),
               bbox_inches='tight', dpi=500)
