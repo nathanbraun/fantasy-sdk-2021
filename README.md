@@ -50,6 +50,9 @@ Here are my priorities, most important first:
 Check back here for updated versions. Will keep the changelog updated.
 
 ## Changelog
+### v0.5.4 and v0.5.5 (2021-10-15)
+Remove some misc, unsed imports and fix a few variable references.
+
 ### v0.5.3 (2021-10-05)
 Bugfix related to the moving the wdis module.
 

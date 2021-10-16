@@ -1,6 +1,5 @@
 import pandas as pd
 from os import path
-import matplotlib.pyplot as plt
 import seaborn as sns
 from pandas import Series
 from utilities import (get_players, get_sims, generate_token, LICENSE_KEY,

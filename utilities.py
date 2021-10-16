@@ -1,10 +1,8 @@
 from pandas import DataFrame, Series
 import pandas as pd
 import json
-from os import path
 from textwrap import dedent
 import requests
-from pathlib import Path
 from configparser import ConfigParser
 
 config = ConfigParser(interpolation=None)

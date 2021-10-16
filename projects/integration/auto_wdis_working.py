@@ -1,10 +1,8 @@
 import hosts.fleaflicker as site
 import hosts.db as db
 import datetime as dt
-from textwrap import dedent
-from pandas import DataFrame, Series
 import sqlite3
-import wdis
+import wdis_manual as wdis
 import pandas as pd
 from utilities import (LICENSE_KEY, generate_token, master_player_lookup,
                        get_sims, get_players, DB_PATH, OUTPUT_PATH)
@@ -71,9 +69,9 @@ current_starters = list(roster.loc[roster['start'] &
 current_starters
 
 def schedule_long(sched):
-    sched1 = schedule.rename(columns={'team1_id': 'team_id', 'team2_id':
+    sched1 = sched.rename(columns={'team1_id': 'team_id', 'team2_id':
                                       'opp_id'})
-    sched2 = schedule.rename(columns={'team2_id': 'team_id', 'team1_id':
+    sched2 = sched.rename(columns={'team2_id': 'team_id', 'team1_id':
                                       'opp_id'})
     return pd.concat([sched1, sched2], ignore_index=True)
 
@@ -219,8 +217,6 @@ def wdis_by_pos2(pos, sims, roster, opp_starters):
 
     df = wdis.calculate(sims, starters, opp_starters,
                         set(wdis_options) & set(sims.columns))
-
-    rec_start_id = df['wp'].idxmax()
 
     df['pos'] = pos
     df.index.name = 'player'

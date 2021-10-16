@@ -1,12 +1,10 @@
 import requests
-from textwrap import dedent
 import numpy as np
 from pandas import DataFrame, Series
 import pandas as pd
-import sqlite3
-from utilities import (LICENSE_KEY, generate_token, master_player_lookup,
-                       DB_PATH)
+from utilities import LICENSE_KEY, generate_token, master_player_lookup
 import json
+
 pd.options.mode.chained_assignment = None
 
 LEAGUE_ID = 316893
