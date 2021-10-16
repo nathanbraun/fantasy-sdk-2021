@@ -1,22 +1,17 @@
-import requests
 import numpy as np
-from textwrap import dedent
 from pandas import DataFrame, Series
 import pandas as pd
 from utilities import (LICENSE_KEY, generate_token, master_player_lookup,
                        YAHOO_FILE, YAHOO_KEY, YAHOO_SECRET)
-import sqlite3
 import json
-from os import path
 from yahoo_oauth import OAuth2
 from pathlib import Path
-from configparser import ConfigParser
 
 # store credentials if don't already exist
 if not Path(YAHOO_FILE).exists():
     yahoo_credentials_dict = {
-        'consumer_key': CONSUMER_KEY,
-        'consumer_secret': CONSUMER_SECRET,
+        'consumer_key': YAHOO_KEY,
+        'consumer_secret': YAHOO_SECRET,
     }
     with open(YAHOO_FILE) as f:
         json.dump(yahoo_credentials_dict, f)

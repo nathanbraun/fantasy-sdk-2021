@@ -1,5 +1,5 @@
 import requests
-from pandas import DataFrame, Series
+from pandas import DataFrame
 import pandas as pd
 
 def player_dict(slot):

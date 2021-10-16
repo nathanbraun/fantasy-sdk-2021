@@ -2,8 +2,7 @@ import hosts.fleaflicker as site
 from hosts.db import overwrite_league
 from pandas import DataFrame
 import sqlite3
-import pandas as pd
-from utilities import DB_PATH, ESPN_S2, SWID
+from utilities import DB_PATH
 
 LEAGUE_ID = 34958
 TEAM_ID = 217960

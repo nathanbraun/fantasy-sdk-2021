@@ -1,5 +1,5 @@
 import sqlite3
-from pandas import DataFrame, Series
+from pandas import DataFrame
 import pandas as pd
 import hosts.fleaflicker as site
 from utilities import DB_PATH

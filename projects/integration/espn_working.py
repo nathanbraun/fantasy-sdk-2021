@@ -1,11 +1,10 @@
 import requests
-from textwrap import dedent
 from pandas import DataFrame, Series
 import pandas as pd
 from utilities import (LICENSE_KEY, generate_token, master_player_lookup, SWID,
                        ESPN_S2)
-import sqlite3
 import json
+
 pd.options.mode.chained_assignment = None
 
 
